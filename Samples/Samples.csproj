@@ -170,8 +170,12 @@
     <Compile Include="Samples\PopoverSample.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Samples\ScreensSample.cs" />
-    <Compile Include="Samples\ImageScaling.cs" />
+    <Compile Include="Samples\ScreensSample.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Samples\ImageScaling.cs">
+      <SubType>Component</SubType>
+    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

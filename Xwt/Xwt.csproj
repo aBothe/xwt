@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -361,18 +361,24 @@
     <Compile Include="Xwt.Backends\TextLayoutBackendHandler.cs" />
     <Compile Include="Xwt.Backends\ClipboardBackend.cs" />
     <Compile Include="Xwt.Backends\ApplicationContext.cs" />
-    <Compile Include="Xwt\Toolkit.cs" />
+    <Compile Include="Xwt\Toolkit.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Xwt.Drawing\DrawingPath.cs" />
     <Compile Include="Xwt.Backends\DrawingPathBackendHandler.cs" />
     <Compile Include="Xwt\Desktop.cs" />
     <Compile Include="Xwt\Screen.cs" />
     <Compile Include="Xwt.Backends\DesktopBackend.cs" />
     <Compile Include="Xwt.Backends\BackendTypeAttribute.cs" />
-    <Compile Include="Xwt.Backends\IEmbeddedWidgetBackend.cs" />
+    <Compile Include="Xwt.Backends\IEmbeddedWidgetBackend.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Xwt\ListViewRowEventArgs.cs" />
     <Compile Include="Xwt\TreeViewRowEventArgs.cs" />
     <Compile Include="Xwt\CanvasCellView.cs" />
-    <Compile Include="Xwt\SegmentedButton.cs" />
+    <Compile Include="Xwt\SegmentedButton.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Xwt.Backends\ISegmentedButtonBackend.cs" />
     <Compile Include="Xwt.Backends\SystemBackend.cs" />
     <Compile Include="Xwt.Backends\WindowsSystemBackend.cs" />
@@ -385,7 +391,9 @@
     <Compile Include="Xwt.Drawing\ImageSet.cs" />
     <Compile Include="Xwt.Formats\PlainTextFormat.cs" />
     <Compile Include="Xwt.Drawing\ImageFileType.cs" />
-    <Compile Include="Xwt\Slider.cs" />
+    <Compile Include="Xwt\Slider.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Xwt.Backends\ISliderBackend.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
