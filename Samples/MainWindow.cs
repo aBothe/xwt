@@ -62,7 +62,8 @@ namespace Samples
 			icon = Image.FromResource (typeof(App), "class.png");
 			
 			store = new TreeStore (nameCol, iconCol, widgetCol);
-			samplesTree = new TreeView ();
+			samplesTree = new TreeView();
+			
 			samplesTree.Columns.Add ("Name", iconCol, nameCol);
 			
 			AddSample (null, "Boxes", typeof(Boxes));
@@ -111,8 +112,10 @@ namespace Samples
 			AddSample (null, "Windows", typeof(Windows));
 			
 			samplesTree.DataSource = store;
-			
-			box.Panel1.Content = samplesTree;
+
+			var vb = new VBox();
+			vb.PackStart(samplesTree, BoxMode.FillAndExpand);
+			box.Panel1.Content = vb;
 			
 			sampleBox = new VBox ();
 			title = new Label ("Sample:");
