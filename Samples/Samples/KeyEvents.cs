@@ -14,6 +14,9 @@ namespace Samples
 		public KeyEvents()
 		{
 			PackStart(label, BoxMode.FillAndExpand);
+
+			CanGetFocus = true;
+			SetFocus();
 		}
 
 		protected override void OnKeyPressed(KeyEventArgs args)
