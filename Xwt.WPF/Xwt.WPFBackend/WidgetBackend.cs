@@ -462,10 +462,10 @@ namespace Xwt.WPFBackend
 				var ev = (WidgetEvent)eventId;
 				switch (ev) {
 					case WidgetEvent.KeyPressed:
-						Widget.KeyDown += WidgetKeyDownHandler;
+						System.Windows.Application.Current.MainWindow.KeyDown += WidgetKeyDownHandler;
 						break;
 					case WidgetEvent.KeyReleased:
-						Widget.KeyDown += WidgetKeyUpHandler;
+						System.Windows.Application.Current.MainWindow.KeyUp += WidgetKeyUpHandler;
 						break;
 					case WidgetEvent.ButtonPressed:
 						Widget.MouseDown += WidgetMouseDownHandler;
@@ -586,7 +586,7 @@ namespace Xwt.WPFBackend
 		void WidgetKeyDownHandler (object sender, System.Windows.Input.KeyEventArgs e)
 		{
 			KeyEventArgs args;
-			if (MapToXwtKeyArgs (e, out args)) {
+			if (HasFocus && MapToXwtKeyArgs (e, out args)) {
 				Context.InvokeUserCode (delegate {
 					eventSink.OnKeyPressed (args);
 				});
@@ -598,7 +598,8 @@ namespace Xwt.WPFBackend
 		void WidgetKeyUpHandler (object sender, System.Windows.Input.KeyEventArgs e)
 		{
 			KeyEventArgs args;
-			if (MapToXwtKeyArgs (e, out args)) {
+			if (HasFocus && MapToXwtKeyArgs(e, out args))
+			{
 				Context.InvokeUserCode (delegate
 				{
 					eventSink.OnKeyReleased (args);
