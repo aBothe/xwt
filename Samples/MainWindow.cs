@@ -91,6 +91,7 @@ namespace Samples
 			AddSample (null, "Progress bars", typeof(ProgressBarSample));
 			AddSample (null, "Frames", typeof(Frames));
 			AddSample (null, "Images", typeof(Images));
+			AddSample(null, "Key Events", typeof(KeyEvents));
 			AddSample (null, "Labels", typeof(Labels));
 			AddSample (null, "ListBox", typeof(ListBoxSample));
 			AddSample (null, "LinkLabels", typeof(LinkLabels));
