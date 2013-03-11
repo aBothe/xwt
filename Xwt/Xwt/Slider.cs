@@ -36,7 +36,7 @@ namespace Xwt
 		{
 		}
 
-		protected new class WidgetBackendHost: Widget.WidgetBackendHost, ISpinButtonEventSink
+		protected new class WidgetBackendHost: Widget.WidgetBackendHost, ISliderEventSink
 		{
 			public void ValueChanged ()
 			{
@@ -78,12 +78,12 @@ namespace Xwt
 		
 		public event EventHandler ValueChanged {
 			add {
-				BackendHost.OnBeforeEventAdd (SpinButtonEvent.ValueChanged, valueChanged);
+				BackendHost.OnBeforeEventAdd (SliderEvent.ValueChanged, valueChanged);
 				valueChanged += value;
 			}
 			remove {
 				valueChanged -= value;
-				BackendHost.OnAfterEventRemove (SpinButtonEvent.ValueChanged, valueChanged);
+				BackendHost.OnAfterEventRemove (SliderEvent.ValueChanged, valueChanged);
 			}
 		}
 	}

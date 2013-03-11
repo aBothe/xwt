@@ -25,7 +25,6 @@
 // THE SOFTWARE.
 
 using System;
-using System.Drawing;
 using System.Windows.Media;
 using Xwt.Backends;
 using Image = System.Windows.Controls.Image;
@@ -38,15 +37,20 @@ namespace Xwt.WPFBackend
 		public ImageViewBackend()
 		{
 			Widget = new Image ();
+			Image.Stretch = Stretch.None;
 		}
 
 		public void SetImage (Xwt.Drawing.Image image)
 		{
+			if (image == null) {
+				Image.Source = null;
+				return;
+			}
 			ImageSource source = DataConverter.AsImageSource (Toolkit.GetBackend (image));
 			if (source == null)
 				source = DataConverter.AsImageSource (Toolkit.GetBackend (image.ToBitmap ()));
 			if (source == null)
-				throw new ArgumentException ("nativeImage is not of the expected type", "image");
+				throw new ArgumentException ("image is not of the expected type", "image");
 
 			Image.Source = source;
 		}

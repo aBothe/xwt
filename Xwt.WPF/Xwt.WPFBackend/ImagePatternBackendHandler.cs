@@ -26,7 +26,7 @@
 
 using System;
 using Xwt.Backends;
-using System.Drawing;
+using System.Windows.Media;
 
 namespace Xwt.WPFBackend
 {
@@ -35,8 +35,19 @@ namespace Xwt.WPFBackend
 	{
 		public override object Create (object img)
 		{
-			Bitmap bmp = DataConverter.AsBitmap (img);
-			return new TextureBrush (bmp, System.Drawing.Drawing2D.WrapMode.Tile);
+			var bmp = DataConverter.AsImageSource (img);
+			return new ImageBrush (bmp) {
+				TileMode = TileMode.Tile,
+				ViewportUnits = BrushMappingMode.Absolute,
+				AlignmentY = System.Windows.Media.AlignmentY.Top,
+				AlignmentX = System.Windows.Media.AlignmentX.Left,
+				Stretch = System.Windows.Media.Stretch.None,
+				Viewport = new System.Windows.Rect (0, 0, bmp.Width, bmp.Height)
+			};
+		}
+
+		public override void Dispose (object img)
+		{
 		}
 	}
 }

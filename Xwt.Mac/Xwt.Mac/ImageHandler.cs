@@ -34,6 +34,7 @@ using System.Drawing;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Xwt.Drawing;
+using System.IO;
 
 namespace Xwt.Mac
 {
@@ -46,7 +47,7 @@ namespace Xwt.Mac
 
 		static Dictionary<string, NSImage> stockIcons = new Dictionary<string, NSImage> ();
 		
-		public override object LoadFromStream (System.IO.Stream stream)
+		public override object LoadFromStream (Stream stream)
 		{
 			using (NSData data = NSData.FromStream (stream)) {
 				return new NSImage (data);
@@ -77,8 +78,10 @@ namespace Xwt.Mac
 			var imageData = img.AsTiff ();
 			var imageRep = (NSBitmapImageRep) NSBitmapImageRep.ImageRepFromData (imageData);
 			var props = new NSDictionary ();
-			props [NSBitmapImageRep.CompressionFactor] = NSNumber.FromFloat (1f);
 			imageData = imageRep.RepresentationUsingTypeProperties (fileType.ToMacFileType (), props);
+			using (var s = imageData.AsStream ()) {
+				s.CopyTo (stream);
+			}
 		}
 
 		public override bool IsBitmap (object handle)

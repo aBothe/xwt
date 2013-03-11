@@ -27,15 +27,12 @@
 // THE SOFTWARE.
 
 using System;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Xwt.Backends;
 using Xwt.WPFBackend.Interop;
-using Color = System.Drawing.Color;
 using SWM = System.Windows.Media;
 using SWMI = System.Windows.Media.Imaging;
 
@@ -51,7 +48,24 @@ namespace Xwt.WPFBackend
 			img.StreamSource = stream;
 			img.EndInit();
 
-			return img;
+			var bmp = img as BitmapSource;
+			if (bmp != null && (bmp.DpiX != 96 || bmp.DpiY != 96))
+				return new WpfImage (ConvertBitmapTo96DPI (bmp));
+
+			return new WpfImage (img);
+		}
+
+		public static BitmapSource ConvertBitmapTo96DPI (BitmapSource bitmapImage)
+		{
+			double dpi = 96;
+			int width = bitmapImage.PixelWidth;
+			int height = bitmapImage.PixelHeight;
+
+			int stride = width * (bitmapImage.Format.BitsPerPixel + 7) / 8;
+			byte[] pixelData = new byte[stride * height];
+			bitmapImage.CopyPixels (pixelData, stride, 0);
+
+			return BitmapSource.Create (width, height, dpi, dpi, bitmapImage.Format, null, pixelData, stride);
 		}
 
 		public override void SaveToStream (object backend, Stream stream, Drawing.ImageFileType fileType)
@@ -97,22 +111,22 @@ namespace Xwt.WPFBackend
 						return LoadFromStream (s);
 
 				case StockIconId.Error:
-					return NativeMethods.GetImage (NativeStockIcon.Error, options);
+					return new WpfImage (NativeMethods.GetImage (NativeStockIcon.Error, options));
 				case StockIconId.Information:
-					return NativeMethods.GetImage (NativeStockIcon.Info, options);
+					return new WpfImage (NativeMethods.GetImage (NativeStockIcon.Info, options));
 				case StockIconId.OrientationLandscape:
 				case StockIconId.OrientationPortrait:
-					return NativeMethods.GetImage (NativeStockIcon.Help, options);
+					return new WpfImage (NativeMethods.GetImage (NativeStockIcon.Help, options));
 				//throw new NotImplementedException();
 				case StockIconId.Question:
-					return NativeMethods.GetImage (NativeStockIcon.Help, options);
+					return new WpfImage (NativeMethods.GetImage (NativeStockIcon.Help, options));
 				case StockIconId.Warning:
-					return NativeMethods.GetImage (NativeStockIcon.Warning, options);
+					return new WpfImage (NativeMethods.GetImage (NativeStockIcon.Warning, options));
 				case StockIconId.Zoom100:
 				case StockIconId.ZoomFit:
 				case StockIconId.ZoomIn:
 				case StockIconId.ZoomOut:
-					return NativeMethods.GetImage (NativeStockIcon.Find, options);
+					return new WpfImage (NativeMethods.GetImage (NativeStockIcon.Find, options));
 
 				default:
 					throw new ArgumentException ("Unknown icon id", "id");
@@ -121,12 +135,44 @@ namespace Xwt.WPFBackend
 
 		public override Xwt.Drawing.Color GetBitmapPixel (object handle, int x, int y)
 		{
-			throw new NotImplementedException ();
+			var wpfImage = (WpfImage)handle;
+			BitmapSource img = wpfImage.Image as BitmapSource;
+			if (img == null)
+				throw new NotSupportedException ("Invalid image format");
+			if (img.Format.BitsPerPixel != 32)
+				throw new NotSupportedException ("Image format not supported");
+
+			wpfImage.AllocatePixelData ();
+			var offset = wpfImage.GetPixelOffset (x, y);
+			return Xwt.Drawing.Color.FromBytes (wpfImage.PixelData[offset + 2], wpfImage.PixelData[offset + 1], wpfImage.PixelData[offset], wpfImage.PixelData[offset + 3]);
 		}
 
 		public override void SetBitmapPixel (object handle, int x, int y, Drawing.Color color)
 		{
-			throw new NotImplementedException ();
+			var wpfImage = (WpfImage)handle;
+			var img = (BitmapSource) wpfImage.Image;
+			if (img == null)
+				throw new NotSupportedException ("Invalid image format");
+			if (img.Format.BitsPerPixel != 32)
+				throw new NotSupportedException ("Image format not supported");
+
+			var bitmapImage = img as WriteableBitmap;
+
+			if (!(bitmapImage is WriteableBitmap)) {
+				bitmapImage = new WriteableBitmap (img);
+				((WpfImage)handle).Image = bitmapImage;
+			}
+
+			wpfImage.AllocatePixelData ();
+			var offset = wpfImage.GetPixelOffset (x, y);
+			wpfImage.PixelData[offset] = (byte)(color.Blue * 255);
+			wpfImage.PixelData[offset + 1] = (byte)(color.Green * 255);
+			wpfImage.PixelData[offset + 2] = (byte)(color.Red * 255);
+			wpfImage.PixelData[offset + 3] = (byte)(color.Alpha * 255);
+
+			bitmapImage.Lock ();
+			bitmapImage.WritePixels (new Int32Rect (x, y, 1, 1), wpfImage.PixelData, wpfImage.Stride, offset);
+			bitmapImage.Unlock ();
 		}
 
 		private static double WidthToDPI (SWMI.BitmapSource img, double pixels)
@@ -137,6 +183,26 @@ namespace Xwt.WPFBackend
 		private static double HeightToDPI (SWMI.BitmapSource img, double pixels)
 		{
 			return pixels * 96 / img.DpiY;
+		}
+
+		public static double WidthToPixels (ImageSource img)
+		{
+			if (img is SWMI.BitmapSource) {
+				var bs = (BitmapSource)img;
+				return (bs.DpiX * bs.Width) / 96;
+			}
+			else
+				return img.Width;
+		}
+
+		public static double HeightToPixels (ImageSource img)
+		{
+			if (img is SWMI.BitmapSource) {
+				var bs = (BitmapSource)img;
+				return (bs.DpiY * bs.Height) / 96;
+			}
+			else
+				return img.Height;
 		}
 
 		public override object ConvertToBitmap (object handle, double width, double height)
@@ -156,20 +222,13 @@ namespace Xwt.WPFBackend
 
 		public override Size GetSize (object handle)
 		{
-			BitmapSource source = handle as BitmapSource;
-			if (source != null)
-				return new Size (source.PixelWidth, source.PixelHeight);
-
-			Bitmap bitmp = handle as Bitmap;
-			if (bitmp != null)
-				return new Size (bitmp.Width, bitmp.Height);
-
-			throw new ArgumentException();
+			BitmapSource source = (BitmapSource) DataConverter.AsImageSource (handle);
+			return new Size (source.PixelWidth, source.PixelHeight);
 		}
 
 		public override object ResizeBitmap (object handle, double width, double height)
 		{
-			var oldImg = (SWMI.BitmapSource)handle;
+			var oldImg = (SWMI.BitmapSource)DataConverter.AsImageSource (handle);
 
 			width = WidthToDPI (oldImg, width);
 			height = HeightToDPI (oldImg, height);
@@ -188,12 +247,12 @@ namespace Xwt.WPFBackend
 
 		public override object CopyBitmap (object handle)
 		{
-			return ((SWMI.BitmapSource)handle).Clone ();
+			return new WpfImage (((SWMI.BitmapSource)DataConverter.AsImageSource (handle)).Clone ());
 		}
 
 		public override object CropBitmap(object handle, int srcX, int srcY, int w, int h)
 		{
-			var oldImg = (SWMI.BitmapSource)handle;
+			var oldImg = (SWMI.BitmapSource)DataConverter.AsImageSource (handle);
 
 			double width = WidthToDPI (oldImg, w);
 			double height = HeightToDPI (oldImg, h);
@@ -213,7 +272,8 @@ namespace Xwt.WPFBackend
 
 		public override object ChangeBitmapOpacity (object backend, double opacity)
 		{
-			Bitmap bitmap = DataConverter.AsBitmap (backend);
+			throw new System.NotImplementedException ();
+/*			Bitmap bitmap = DataConverter.AsBitmap (backend);
 			if (bitmap == null)
 				throw new ArgumentException ();
 			Bitmap result = new Bitmap (bitmap.Width, bitmap.Height, bitmap.PixelFormat);
@@ -221,11 +281,42 @@ namespace Xwt.WPFBackend
 			WpfContextBackendHandler.DrawImageCore (g, bitmap, 0, 0, bitmap.Width, bitmap.Height, (float)opacity);
 			g.Dispose ();
 			return result;
-		}
+*/		}
 
 		public override void CopyBitmapArea (object srcHandle, int srcX, int srcY, int width, int height, object destHandle, int destX, int destY)
 		{
 			throw new NotImplementedException ();
+		}
+	}
+
+	class WpfImage
+	{
+		public WpfImage (ImageSource image)
+		{
+			Image = image;
+		}
+
+		public ImageSource Image;
+		public byte[] PixelData;
+		public int Stride;
+		public bool PixelWritePending;
+
+		public int GetPixelOffset (int x, int y)
+		{
+			BitmapSource img = Image as BitmapSource;
+			return y * Stride + x * ((img.Format.BitsPerPixel + 7) / 8);
+		}
+
+		public void AllocatePixelData ()
+		{
+			if (PixelData == null) {
+				BitmapSource img = Image as BitmapSource;
+				var height = (int) ImageHandler.HeightToPixels (img);
+				var width = (int) ImageHandler.WidthToPixels (img);
+				Stride = (width * img.Format.BitsPerPixel + 7) / 8;
+				PixelData = new byte[height * Stride];
+				img.CopyPixels (PixelData, Stride, 0);
+			}
 		}
 	}
 }
