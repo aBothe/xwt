@@ -462,10 +462,10 @@ namespace Xwt.WPFBackend
 				var ev = (WidgetEvent)eventId;
 				switch (ev) {
 					case WidgetEvent.KeyPressed:
-						System.Windows.Application.Current.MainWindow.KeyDown += WidgetKeyDownHandler;
+						Widget.KeyDown += WidgetKeyDownHandler;
 						break;
 					case WidgetEvent.KeyReleased:
-						System.Windows.Application.Current.MainWindow.KeyUp += WidgetKeyUpHandler;
+						Widget.KeyUp += WidgetKeyUpHandler;
 						break;
 					case WidgetEvent.ButtonPressed:
 						Widget.MouseDown += WidgetMouseDownHandler;
